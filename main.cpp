@@ -23,6 +23,7 @@ int main() {
 
     Image2DRGBA8 src;
     src.load("src.png");
+    //src.load("src_large.png");
 
     ITexture *tex = CreateTexture();
     tex->upload(src);
@@ -30,137 +31,174 @@ int main() {
     std::vector<glm::ivec2> d_vec_map(src.width() * src.height());
     int large = std::max(src.width(), src.height());
 
-    for (int y = 0; y < src.height(); y++)
-    {
-        for (int x = 0; x < src.width(); x++)
-        {
-            int index = y * src.width() + x;
-            int val = 128 < src(x, y).x ? 0 : large;
-            d_vec_map[index] = glm::ivec2(val, val);
-        }
-    }
-
     auto len2 = [](glm::ivec2 v)
     {
         return v.x * v.x + v.y * v.y;
     };
-
-    std::array<glm::ivec2, 4> step1 = {
-        glm::ivec2{-1, -1},
-        glm::ivec2{ 0, -1},
-        glm::ivec2{-1,  0},
-        glm::ivec2{+1, -1},
-    };
-    std::array<glm::ivec2, 1> step2 = {
-        glm::ivec2{+1, 0},
-    };
-
-    std::array<glm::ivec2, 4> step3 = {
-        glm::ivec2{+1,  0},
-        glm::ivec2{-1, +1},
-        glm::ivec2{ 0, +1},
-        glm::ivec2{+1, +1},
-    };
-
-    std::array<glm::ivec2, 1> step4 = {
-        glm::ivec2{-1, 0},
-    };
-
-    // 1
-    for (int y = 0; y < src.height(); y++)
+    //for (;;)
     {
-        for (int x = 0; x < src.width(); x++)
+        Stopwatch sw;
+        for (int y = 0; y < src.height(); y++)
         {
-            int cx = x;
-            int cy = y;
-            int index_c = cy * src.width() + cx;
-            glm::ivec2 c = d_vec_map[index_c];
-
-            for (glm::ivec2 mv : step1)
+            for (int x = 0; x < src.width(); x++)
             {
-                int src_x = glm::clamp(cx + mv.x, 0, src.width() - 1);
-                int src_y = glm::clamp(cy + mv.y, 0, src.height() - 1);
-                int src_idx = src_y * src.width() + src_x;
-                glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
-                if (len2(next) < len2(c))
-                {
-                    c = next;
-                }
+                int index = y * src.width() + x;
+                int val = 128 < src(x, y).x ? 0 : large;
+                d_vec_map[index] = glm::ivec2(val, val);
             }
-            d_vec_map[index_c] = c;
         }
-    }
 
-    for (int y = 0; y < src.height(); y++)
-    {
-        for (int x = 0; x < src.width(); x++)
+        std::array<glm::ivec2, 4> step1 = {
+            glm::ivec2{-1, -1},
+            glm::ivec2{ 0, -1},
+            glm::ivec2{-1,  0},
+            glm::ivec2{+1, -1},
+        };
+        std::array<glm::ivec2, 1> step2 = {
+            glm::ivec2{+1, 0},
+        };
+
+        std::array<glm::ivec2, 4> step3 = {
+            glm::ivec2{+1,  0},
+            glm::ivec2{-1, +1},
+            glm::ivec2{ 0, +1},
+            glm::ivec2{+1, +1},
+        };
+
+        std::array<glm::ivec2, 1> step4 = {
+            glm::ivec2{-1, 0},
+        };
+
+        // 1
+        int width = src.width();
+        int height = src.height();
+        for (int y = 1; y < height - 1; y++)
         {
-            int cx = src.width() - x - 1;
-            int cy = y;
-            int index_c = cy * src.width() + cx;
-            glm::ivec2 c = d_vec_map[index_c];
-
-            for (glm::ivec2 mv : step2)
+            for (int x = 1; x < width - 1; x++)
             {
-                int src_x = glm::clamp(cx + mv.x, 0, src.width() - 1);
-                int src_y = glm::clamp(cy + mv.y, 0, src.height() - 1);
-                int src_idx = src_y * src.width() + src_x;
-                glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
-                if (len2(next) < len2(c))
-                {
-                    c = next;
-                }
-            }
-            d_vec_map[index_c] = c;
-        }
-    }
+                int cx = x;
+                int cy = y;
+                int index_c = cy * width + cx;
+                glm::ivec2 c = d_vec_map[index_c];
+                int clen2 = len2(c);
 
-    for (int y = 0; y < src.height(); y++)
-    {
-        for (int x = 0; x < src.width(); x++)
+                for (glm::ivec2 mv : step1)
+                {
+                    //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_x = cx + mv.x;
+                    int src_y = cy + mv.y;
+                    int src_idx = src_y * width + src_x;
+                    glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
+                    int nextlen2 = len2(next);
+                    if (nextlen2 < clen2)
+                    {
+                        clen2 = nextlen2;
+                        c = next;
+                    }
+                    //if (len2(next) < len2(c))
+                    //{
+                    //    c = next;
+                    //}
+                }
+                d_vec_map[index_c] = c;
+            }
+        }
+
+        for (int y = 0; y < height; y++)
         {
-            int cx = src.width() - x - 1;
-            int cy = src.height() - y - 1;
-            int index_c = cy * src.width() + cx;
-            glm::ivec2 c = d_vec_map[index_c];
-
-            for (glm::ivec2 mv : step3)
+            for (int x = 0; x < width; x++)
             {
-                int src_x = glm::clamp(cx + mv.x, 0, src.width() - 1);
-                int src_y = glm::clamp(cy + mv.y, 0, src.height() - 1);
-                int src_idx = src_y * src.width() + src_x;
-                glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
-                if (len2(next) < len2(c))
+                int cx = width - x - 1;
+                int cy = y;
+                int index_c = cy * width + cx;
+                glm::ivec2 c = d_vec_map[index_c];
+                int clen2 = len2(c);
+                for (glm::ivec2 mv : step2)
                 {
-                    c = next;
+                    int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_idx = src_y * width + src_x;
+                    glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
+                    //if (len2(next) < len2(c))
+                    //{
+                    //    c = next;
+                    //}
+                    int nextlen2 = len2(next);
+                    if (nextlen2 < clen2)
+                    {
+                        clen2 = nextlen2;
+                        c = next;
+                    }
                 }
+                d_vec_map[index_c] = c;
             }
-            d_vec_map[index_c] = c;
         }
-    }
 
-    for (int y = 0; y < src.height(); y++)
-    {
-        for (int x = 0; x < src.width(); x++)
+        for (int y = 0; y < height; y++)
         {
-            int cx = x;
-            int cy = y;
-            int index_c = cy * src.width() + cx;
-            glm::ivec2 c = d_vec_map[index_c];
-
-            for (glm::ivec2 mv : step4)
+            for (int x = 0; x < width; x++)
             {
-                int src_x = glm::clamp(cx + mv.x, 0, src.width() - 1);
-                int src_y = glm::clamp(cy + mv.y, 0, src.height() - 1);
-                int src_idx = src_y * src.width() + src_x;
-                glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
-                if (len2(next) < len2(c))
+                int cx = width - x - 1;
+                int cy = height - y - 1;
+                int index_c = cy * width + cx;
+                glm::ivec2 c = d_vec_map[index_c];
+                int clen2 = len2(c);
+
+                for (glm::ivec2 mv : step3)
                 {
-                    c = next;
+                    int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_idx = src_y * width + src_x;
+                    glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
+                    //if (len2(next) < len2(c))
+                    //{
+                    //    c = next;
+                    //}
+                    int nextlen2 = len2(next);
+                    if (nextlen2 < clen2)
+                    {
+                        clen2 = nextlen2;
+                        c = next;
+                    }
                 }
+                d_vec_map[index_c] = c;
             }
-            d_vec_map[index_c] = c;
         }
+
+        for (int y = 0; y < height; y++)
+        {
+            for (int x = 0; x < width; x++)
+            {
+                int cx = x;
+                int cy = y;
+                int index_c = cy * width + cx;
+                glm::ivec2 c = d_vec_map[index_c];
+                int clen2 = len2(c);
+
+                for (glm::ivec2 mv : step4)
+                {
+                    int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_idx = src_y * width + src_x;
+                    glm::ivec2 next = d_vec_map[src_idx] + glm::abs(mv);
+                    //if (len2(next) < len2(c))
+                    //{
+                    //    c = next;
+                    //}
+                    int nextlen2 = len2(next);
+                    if (nextlen2 < clen2)
+                    {
+                        clen2 = nextlen2;
+                        c = next;
+                    }
+                }
+                d_vec_map[index_c] = c;
+            }
+        }
+
+        printf("%f\n", sw.elapsed());
+
     }
 
     Image2DRGBA8 distanceMap;
