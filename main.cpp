@@ -28,7 +28,7 @@ int main() {
     tex->upload(src);
 
     std::vector<glm::ivec2> d_vec_map(src.width() * src.height());
-    int large = std::max(src.width(), src.height()) * 2;
+    int large = std::max(src.width(), src.height());
 
     for (int y = 0; y < src.height(); y++)
     {
