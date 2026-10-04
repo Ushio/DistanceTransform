@@ -2,6 +2,17 @@
 #include <iostream>
 #include <memory>
 #include <array>
+template <class T>
+inline constexpr T ss_max(T x, T y)
+{
+    return (x < y) ? y : x;
+}
+
+template <class T>
+inline constexpr T ss_min(T x, T y)
+{
+    return (y < x) ? y : x;
+}
 
 int main() {
     using namespace pr;
@@ -65,9 +76,9 @@ int main() {
             glm::ivec2{0, +1},
         };
 
-        for (int y = 0; y < height; y++)
+        for (int y = 1; y < height-1; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 1; x < width-1; x++)
             {
                 int cx = x;
                 int cy = y;
@@ -76,22 +87,20 @@ int main() {
 
                 for (glm::ivec2 mv : l1_step1)
                 {
-                    int src_x = glm::clamp(cx + mv.x, 0, width - 1);
-                    int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_x = cx + mv.x;
+                    int src_y = cy + mv.y;
                     int src_idx = src_y * width + src_x;
                     int next = l1_map[src_idx] + 1;
-
-                    if (next < c)
-                    {
-                        c = next;
-                    }
+                    c = ss_min(next, c);
                 }
                 l1_map[index_c] = c;
             }
         }
-        for (int y = 0; y < height; y++)
+        for (int y = 1; y < height - 1; y++)
         {
-            for (int x = 0; x < width; x++)
+            for (int x = 1; x < width - 1; x++)
             {
                 int cx = width - x - 1;
                 int cy = height - y - 1;
@@ -100,15 +109,13 @@ int main() {
 
                 for (glm::ivec2 mv : l1_step2)
                 {
-                    int src_x = glm::clamp(cx + mv.x, 0, width - 1);
-                    int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+                    //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+                    int src_x = cx + mv.x;
+                    int src_y = cy + mv.y;
                     int src_idx = src_y * width + src_x;
                     int next = l1_map[src_idx] + 1;
-
-                    if (next < c)
-                    {
-                        c = next;
-                    }
+                    c = ss_min(next, c);
                 }
                 l1_map[index_c] = c;
             }
