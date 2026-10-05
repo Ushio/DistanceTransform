@@ -33,8 +33,8 @@ int main() {
     double e = GetElapsedTime();
 
     Image2DRGBA8 src;
-    src.load("src.png");
-    //src.load("src_large.png");
+    //src.load("src.png");
+    src.load("src_large.png");
 
     ITexture *tex = CreateTexture();
     tex->upload(src);
@@ -67,39 +67,95 @@ int main() {
         }
 
         // l1
-        std::array<glm::ivec2, 2> l1_step1 = {
-            glm::ivec2{-1, 0},
-            glm::ivec2{0, -1},
-        };
-        std::array<glm::ivec2, 2> l1_step2 = {
-            glm::ivec2{+1, 0},
-            glm::ivec2{0, +1},
-        };
+        //std::array<glm::ivec2, 2> l1_step1 = {
+        //    glm::ivec2{-1, 0},
+        //    glm::ivec2{0, -1},
+        //};
+        //std::array<glm::ivec2, 2> l1_step2 = {
+        //    glm::ivec2{+1, 0},
+        //    glm::ivec2{0, +1},
+        //};
 
-        for (int y = 1; y < height-1; y++)
+        //for (int y = 1; y < height-1; y++)
+        //{
+        //    for (int x = 1; x < width-1; x++)
+        //    {
+        //        int cx = x;
+        //        int cy = y;
+        //        int index_c = cy * width + cx;
+        //        int c = l1_map[index_c];
+
+        //        for (glm::ivec2 mv : l1_step1)
+        //        {
+        //            //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+        //            //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+        //            int src_x = cx + mv.x;
+        //            int src_y = cy + mv.y;
+        //            int src_idx = src_y * width + src_x;
+        //            int next = l1_map[src_idx] + 1;
+        //            c = ss_min(next, c);
+        //        }
+        //        l1_map[index_c] = c;
+        //    }
+        //}
+        for (int y = 1; y < height - 1; y++)
         {
-            for (int x = 1; x < width-1; x++)
+            int prev_c = width * height;
+
+            for (int x = 1; x < width - 1; x++)
             {
                 int cx = x;
                 int cy = y;
                 int index_c = cy * width + cx;
                 int c = l1_map[index_c];
 
-                for (glm::ivec2 mv : l1_step1)
                 {
-                    //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
-                    //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
-                    int src_x = cx + mv.x;
-                    int src_y = cy + mv.y;
+                    //int src_x = cx - 1;
+                    //int src_y = cy;
+                    //int src_idx = src_y * width + src_x;
+                    //int next = l1_map[src_idx] + 1;
+                    //c = ss_min(next, c);
+
+                    c = ss_min(prev_c + 1, c); // reuse
+                }
+                {
+                    int src_x = cx;
+                    int src_y = cy - 1;
                     int src_idx = src_y * width + src_x;
                     int next = l1_map[src_idx] + 1;
                     c = ss_min(next, c);
                 }
                 l1_map[index_c] = c;
+                prev_c = c;
             }
         }
+
+        //for (int y = 1; y < height - 1; y++)
+        //{
+        //    for (int x = 1; x < width - 1; x++)
+        //    {
+        //        int cx = width - x - 1;
+        //        int cy = height - y - 1;
+        //        int index_c = cy * width + cx;
+        //        int c = l1_map[index_c];
+
+        //        for (glm::ivec2 mv : l1_step2)
+        //        {
+        //            //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
+        //            //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
+        //            int src_x = cx + mv.x;
+        //            int src_y = cy + mv.y;
+        //            int src_idx = src_y * width + src_x;
+        //            int next = l1_map[src_idx] + 1;
+        //            c = ss_min(next, c);
+        //        }
+        //        l1_map[index_c] = c;
+        //    }
+        //}
         for (int y = 1; y < height - 1; y++)
         {
+            int prev_c = width * height;
+
             for (int x = 1; x < width - 1; x++)
             {
                 int cx = width - x - 1;
@@ -107,20 +163,26 @@ int main() {
                 int index_c = cy * width + cx;
                 int c = l1_map[index_c];
 
-                for (glm::ivec2 mv : l1_step2)
                 {
-                    //int src_x = glm::clamp(cx + mv.x, 0, width - 1);
-                    //int src_y = glm::clamp(cy + mv.y, 0, height - 1);
-                    int src_x = cx + mv.x;
-                    int src_y = cy + mv.y;
+                    //int src_x = cx + 1;
+                    //int src_y = cy;
+                    //int src_idx = src_y * width + src_x;
+                    //int next = l1_map[src_idx] + 1;
+                    //c = ss_min(next, c);
+
+                    c = ss_min(prev_c + 1, c); // reuse
+                }
+                {
+                    int src_x = cx;
+                    int src_y = cy + 1;
                     int src_idx = src_y * width + src_x;
                     int next = l1_map[src_idx] + 1;
                     c = ss_min(next, c);
                 }
                 l1_map[index_c] = c;
+                prev_c = c;
             }
         }
-
 #if 0
         std::array<glm::ivec2, 4> step1 = {
             glm::ivec2{-1, -1},
