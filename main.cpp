@@ -46,7 +46,8 @@ int main() {
     {
         return v.x * v.x + v.y * v.y;
     };
-
+    constexpr int grid_unit = 256;
+    constexpr int diag_unit = 362;
     std::vector<int> l1_map(src.width() * src.height());
     //for (;;)
     {
@@ -88,10 +89,10 @@ int main() {
                 int d22 = c_head[cx];
                 int d13 = u_head[cx + 1];
 
-                d22 = ss_min(d22, d11 + 4);
-                d22 = ss_min(d22, d12 + 3);
-                d22 = ss_min(d22, d13 + 4);
-                d22 = ss_min(d22, d21 + 3);
+                d22 = ss_min(d22, d11 + diag_unit);
+                d22 = ss_min(d22, d12 + grid_unit);
+                d22 = ss_min(d22, d13 + diag_unit);
+                d22 = ss_min(d22, d21 + grid_unit);
 
                 c_head[cx] = d22;
                 
@@ -127,10 +128,10 @@ int main() {
                 int d22 = c_head[cx];
                 int d31 = b_head[cx - 1];
 
-                d22 = ss_min(d22, d23 + 3);
-                d22 = ss_min(d22, d31 + 4);
-                d22 = ss_min(d22, d32 + 3);
-                d22 = ss_min(d22, d33 + 4);
+                d22 = ss_min(d22, d23 + grid_unit);
+                d22 = ss_min(d22, d31 + diag_unit);
+                d22 = ss_min(d22, d32 + grid_unit);
+                d22 = ss_min(d22, d33 + diag_unit);
 
                 c_head[cx] = d22;
                 /*
@@ -319,7 +320,7 @@ int main() {
         for (int x = 0; x < src.width(); x++)
         {
             int index_c = y * src.width() + x;
-            int len = l1_map[index_c] / 3;
+            int len = l1_map[index_c] / grid_unit;
 
             int val = glm::clamp(len * len, 0, 255);
             distanceMap(x, y) = {
