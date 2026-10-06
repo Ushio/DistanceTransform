@@ -33,8 +33,8 @@ int main() {
     double e = GetElapsedTime();
 
     Image2DRGBA8 src;
-    //src.load("src.png");
-    src.load("src_large.png");
+   src.load("src.png");
+   //src.load("src_large.png");
 
     ITexture *tex = CreateTexture();
     tex->upload(src);
@@ -48,8 +48,7 @@ int main() {
     };
 
     std::vector<int> l1_map(src.width() * src.height());
-
-    for (;;)
+    //for (;;)
     {
         int width = src.width();
         int height = src.height();
@@ -62,13 +61,14 @@ int main() {
                 int index = y * src.width() + x;
                 int val = 128 < src(x, y).x ? 0 : large;
                 d_vec_map[index] = glm::ivec2(val, val);
-                l1_map[index] = 128 < src(x, y).x ? 0 : width + height;
+                l1_map[index] = 128 < src(x, y).x ? 0 : INT_MAX / 2;
             }
         }
 
         for (int y = 1; y < height - 1; y++)
         {
-            int prev_c = width * height;
+            int prev_c = INT_MAX / 2;
+            //float prev_uc = width * height;
             int cy = y;
 
             int* c_head = l1_map.data() + cy * width;
@@ -79,17 +79,20 @@ int main() {
                 
                 int c = c_head[cx];
                 int u = u_head[cx];
-                c = ss_min(prev_c + 1, c);
-                c = ss_min(u + 1, c);
+                c = ss_min(prev_c + 3, c);
+                c = ss_min(u + 3, c);
+                c = ss_min(u_head[cx - 1] + 4, c);
+                c = ss_min(u_head[cx + 1] + 4, c);
 
                 c_head[cx] = c;
                 prev_c = c;
+                //prev_uc = u;
             }
         }
 
         for (int y = 1; y < height - 1; y++)
         {
-            int prev_c = width * height;
+            int prev_c = INT_MAX / 2;
             int cy = height - y - 1;
 
             int* c_head = l1_map.data() + cy * width;
@@ -100,8 +103,10 @@ int main() {
                 
                 int c = c_head[cx];
                 int b = b_head[cx];
-                c = ss_min(prev_c + 1, c);
-                c = ss_min(b + 1, c);
+                c = ss_min(prev_c + 3, c);
+                c = ss_min(b + 3, c);
+                c = ss_min(b_head[cx - 1] + 4, c);
+                c = ss_min(b_head[cx + 1] + 4, c);
 
                 c_head[cx] = c;
                 prev_c = c;
@@ -284,7 +289,7 @@ int main() {
         for (int x = 0; x < src.width(); x++)
         {
             int index_c = y * src.width() + x;
-            int len = l1_map[index_c];
+            int len = l1_map[index_c] / 3;
 
             int val = glm::clamp(len * len, 0, 255);
             distanceMap(x, y) = {
