@@ -33,8 +33,8 @@ int main() {
     double e = GetElapsedTime();
 
     Image2DRGBA8 src;
-   src.load("src.png");
-   //src.load("src_large.png");
+    src.load("src.png");
+    //src.load("src_large.png");
 
     ITexture *tex = CreateTexture();
     tex->upload(src);
@@ -67,49 +67,79 @@ int main() {
 
         for (int y = 1; y < height - 1; y++)
         {
-            int prev_c = INT_MAX / 2;
-            //float prev_uc = width * height;
             int cy = y;
 
             int* c_head = l1_map.data() + cy * width;
             int* u_head = l1_map.data() + (cy - 1) * width;
+
+            /*
+            11, 12, 13,
+            21, 22, 23,
+            31, 32, 33,
+            */
+            int d11 = u_head[0];
+            int d12 = u_head[1];
+            int d21 = c_head[0];
+
             for (int x = 1; x < width - 1; x++)
             {
                 int cx = x;
                 
-                int c = c_head[cx];
-                int u = u_head[cx];
-                c = ss_min(prev_c + 3, c);
-                c = ss_min(u + 3, c);
-                c = ss_min(u_head[cx - 1] + 4, c);
-                c = ss_min(u_head[cx + 1] + 4, c);
+                int d22 = c_head[cx];
+                int d13 = u_head[cx + 1];
 
-                c_head[cx] = c;
-                prev_c = c;
-                //prev_uc = u;
+                d22 = ss_min(d22, d11 + 4);
+                d22 = ss_min(d22, d12 + 3);
+                d22 = ss_min(d22, d13 + 4);
+                d22 = ss_min(d22, d21 + 3);
+
+                c_head[cx] = d22;
+                
+                /*
+                11 <- 12 <- 13,
+                21 <- 22
+                */
+                d11 = d12; d12 = d13;
+                d21 = d22;
             }
         }
 
         for (int y = 1; y < height - 1; y++)
         {
-            int prev_c = INT_MAX / 2;
             int cy = height - y - 1;
 
             int* c_head = l1_map.data() + cy * width;
             int* b_head = l1_map.data() + (cy + 1) * width;
+
+            /*
+            11, 12, 13,
+            21, 22, 23,
+            31, 32, 33,
+            */
+            int d23 = c_head[width - 1];
+            int d32 = b_head[width - 2];
+            int d33 = b_head[width - 1];
+
             for (int x = 1; x < width - 1; x++)
             {
                 int cx = width - x - 1;
                 
-                int c = c_head[cx];
-                int b = b_head[cx];
-                c = ss_min(prev_c + 3, c);
-                c = ss_min(b + 3, c);
-                c = ss_min(b_head[cx - 1] + 4, c);
-                c = ss_min(b_head[cx + 1] + 4, c);
+                int d22 = c_head[cx];
+                int d31 = b_head[cx - 1];
 
-                c_head[cx] = c;
-                prev_c = c;
+                d22 = ss_min(d22, d23 + 3);
+                d22 = ss_min(d22, d31 + 4);
+                d22 = ss_min(d22, d32 + 3);
+                d22 = ss_min(d22, d33 + 4);
+
+                c_head[cx] = d22;
+                /*
+                      22 -> 23,
+                31 -> 32 -> 33,
+                */
+                d23 = d22;
+                d33 = d32;
+                d32 = d31;
             }
         }
 #if 0
